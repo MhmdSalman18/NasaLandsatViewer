@@ -104,6 +104,8 @@
         var pointer = new THREE.Vector2();
         var v3 = new THREE.Vector3();
         var str = "";
+        var latiti;
+        var longigi;
 
         var bId = function (id) { return document.getElementById(id); }
         var daaa = bId("aaa");
@@ -211,14 +213,17 @@
                         if (quad.position.y >= 0)
                         {
                             str += "<tr><td class='esq'>Latitude</td><td class='dir'>" + (-Number(lati).toFixed(2)) + "</td></tr>";
+                            latiti = -Number(lati).toFixed(2);
                         }
                         if (quad.position.y < 0)
                         {
                             str += "<tr><td class='esq'>Latitude</td><td class='dir'>" + Number(-(lati)).toFixed(2) + "</td></tr>";
+                            latiti = Number(-(lati)).toFixed(2);
                         }
                         if (quad.position.z >= 0)
                         {
                             str += "<tr><td class='esq'>Longitude</td><td class='dir'>" + Number((57.2957795 * Math.atan(quad.position.x / quad.position.z)).toFixed(2)) + "</td></tr>";
+                            longigi = Number((57.2957795 * Math.atan(quad.position.x / quad.position.z)).toFixed(2))
                         }
                         if (quad.position.z < 0)
                         {
@@ -226,11 +231,16 @@
                             if (longi <= 180)
                             {
                                 str += "<tr><td class='esq'>Longitude</td><td class='dir'>" + Number(longi).toFixed(2) + "</td></tr>";
+                                longigi = Number(longi).toFixed(2);
                             } else
                             {
                                 str += "<tr><td class='esq'>Longitude</td><td class='dir'>" + Number(longi - 360).toFixed(2) + "</td></tr>";
+                                longigi = Number(longi - 360).toFixed(2);
                             }
                         }
+                        console.log(longigi, latiti);
+                        console.log("hi");
+                        findIt(latiti, longigi)
                         str += "</table>";
                         ddedo.innerHTML = str;
                         ddedo.style.opacity = 1;
