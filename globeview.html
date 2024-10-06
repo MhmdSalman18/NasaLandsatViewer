@@ -2,9 +2,8 @@
 <html lang="en">
 
 <head>
-    <title>quadified_Vi_Ev.html</title>
+    <title>Earth Map</title>
     <meta charset="utf-8">
-    <link rel="shortcut icon" href="ok.ico">
 
     <style>
         body {
@@ -88,7 +87,6 @@
     <div id="imageModal">
         <img src="" alt="NASA Image" id="modalImage">
     </div>
-
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -163,6 +161,32 @@
 
             window.addEventListener("pointerdown", event =>
             {
+                if (event.button === 2)
+                {  // 0 is the left mouse button    
+
+                    intersects = raycaster.intersectObject(Earth, false);
+
+                    let qIdx = Math.floor(intersects[0].faceIndex / 2);
+                    quad.position.copy(intersects[0].point);
+
+                    // Calculate Latitude
+                    let lati = 90 - (57.2957795 * Math.acos(-quad.position.y / 5)); // acos in radians, convert to degrees
+
+                    // Calculate Longitude
+                    let longi;
+                    if (quad.position.z >= 0)
+                    {
+                        longi = 57.2957795 * Math.atan(quad.position.x / quad.position.z); // Longitude if Z >= 0
+                    } else
+                    {
+                        longi = 180 + (57.2957795 * Math.atan(quad.position.x / quad.position.z)); // Longitude if Z < 0
+                        if (longi > 180)
+                        {
+                            longi -= 360; // Adjust for values greater than 180 degrees
+                        }
+                    }
+                    findIt(lati, longi)
+                }
                 pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
                 pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
                 ddedo.style.top = (-20 + event.clientY) + "px";
@@ -207,7 +231,6 @@
                                 str += "<tr><td class='esq'>Longitude</td><td class='dir'>" + Number(longi - 360).toFixed(2) + "</td></tr>";
                             }
                         }
-                        str += "<button onclick='findIt()'>Find it</button>";
                         str += "</table>";
                         ddedo.innerHTML = str;
                         ddedo.style.opacity = 1;
@@ -294,7 +317,7 @@
 
 
         // Define the findIt function globally without async/await
-        findIt = function ()
+        function findIt(lati, longi)
         {
             // Prompt the user for a date
             var dateInput = prompt("Enter a date (YYYY-MM-DD):", "2023-01-01");
@@ -308,7 +331,7 @@
 
             // NASA LANDSAT API Endpoint
             var apiKey = 'DEMO_KEY'; // Replace 'DEMO_KEY' with your actual NASA API key
-            var apiUrl = "https://api.nasa.gov/planetary/earth/imagery?lat=" + currentLat + "&lon=" + currentLon + "&date=" + dateInput + "&dim=0.1&api_key=" + apiKey;
+            var apiUrl = "https://api.nasa.gov/planetary/earth/imagery?lat=" + lati + "&lon=" + longi + "&date=" + dateInput + "&dim=0.1&api_key=" + apiKey;
 
             // Show a loading indicator
             var loadingText = document.createElement('p');
@@ -329,39 +352,11 @@
                 })
                 .then(function (blob)
                 {
-                    // Remove loading indicator
-                    ddedo.removeChild(loadingText);
-
-                    // Create a local URL for the image blob
                     var imageUrl = URL.createObjectURL(blob);
 
-                    // Create an image element to display the fetched image
-                    var img = document.createElement('img');
-                    img.src = imageUrl;
-                    img.alt = "NASA Image on " + dateInput;
-                    img.style.width = '300px';
-                    img.style.height = 'auto';
-                    img.style.marginTop = '10px';
-                    img.style.border = '2px solid #fff';
-                    img.style.cursor = 'pointer'; // Indicate that the image is clickable
+                    // Open the image in a new window
+                    window.open(imageUrl, '_blank');
 
-                    // Optional: Display image in a modal when clicked
-                    img.addEventListener('click', function ()
-                    {
-                        var modal = bId("imageModal");
-                        var modalImg = bId("modalImage");
-                        modalImg.src = imageUrl;
-                        modal.style.display = "flex";
-
-                        // Close the modal when clicked
-                        modal.onclick = function ()
-                        {
-                            modal.style.display = "none";
-                        };
-                    });
-
-                    // Append the image to the 'dedo' div
-                    ddedo.appendChild(img);
                 })
                 .catch(function (error)
                 {
