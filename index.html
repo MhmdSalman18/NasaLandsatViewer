@@ -4,199 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NASA Landsat</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>LANDSAT IMAGES</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS for Additional Styling (Optional) -->
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e9ecef;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 {
-            color: #333;
-            font-size: 2.5em;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        #map {
-            height: 500px;
-            width: 100%;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        label {
-            font-weight: bold;
-            color: #555;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            max-width: 400px;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        h2 {
-            margin-top: 40px;
-            font-size: 1.5em;
-            color: #333;
-        }
-
         img {
-            margin-top: 20px;
-            max-width: 100%;
-            border: 5px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 50%;
         }
 
-        #errorMessage {
-            color: red;
-            margin-top: 20px;
-            font-size: 1em;
+        /* Optional: Custom Border Styling */
+        .custom-border {
+            border: 5px solid #4CAF50;
+            /* Green border */
+            border-radius: 15px;
+            /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            /* Shadow effect */
         }
 
-        #loading {
-            display: none;
-            margin-top: 20px;
-            font-size: 1em;
-            color: #007bff;
+        /* Optional: Hover Effect */
+        .custom-border:hover {
+            transform: scale(1.02);
+            /* Slightly enlarge on hover */
+            transition: transform 0.3s;
         }
     </style>
 </head>
 
 <body>
-    <h1>NASA Landsat</h1>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Landsat View</h1>
 
-    <div class="container">
-        <!-- Map Container -->
-        <div id="map"></div>
-
-        <!-- Input fields to get date -->
-        <div class="input-group">
-            <label for="date">Date (YYYY-MM-DD):</label>
-            <input type="text" id="date" placeholder="Enter Date (optional)">
+        <!-- Button Group -->
+        <div class="d-flex justify-content-center mb-4">
+            <div class="btn-group" role="group" aria-label="Navigation Buttons">
+                <a href="mapview.html" class="btn btn-primary">Map View</a>
+                <a href="globeview.html" class="btn btn-secondary">Globe View</a>
+            </div>
         </div>
 
-        <button id="getImageryBtn">Get Landsat Image</button>
-        <p id="loading">Loading image...</p>
-
-        <!-- Section to display the Landsat image -->
-        <h2>Result</h2>
-        <img id="nasaImage" alt="Landsat Image will appear here" style="max-width:100%; display:none;">
-        <p id="errorMessage"></p>
+        <!-- Image with Bootstrap Border and Custom Styling -->
+        <div class="d-flex justify-content-center">
+            <img src="./img/main.jpeg" alt="Landsat Satellite View wi"
+                class="img-fluid border border-primary rounded custom-border">
+        </div>
     </div>
 
-    <!-- Leaflet and Main Script -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        const apiKey = 'DEMO_KEY';
-        let selectedLat = null;
-        let selectedLon = null;
-
-        // Initialize Leaflet map
-        const map = L.map('map', {
-            zoomControl: false // Disable zoom control to remove borders
-        }).setView([20, 0], 2); // Center of the world
-
-        // Add a more visually appealing tile layer with zoom limits
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            minZoom: 2, // Limit zooming out
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Handle map click events
-        map.on('click', function (e)
-        {
-            selectedLat = e.latlng.lat;
-            selectedLon = e.latlng.lng;
-        });
-
-        document.getElementById('getImageryBtn').addEventListener('click', async () =>
-        {
-            const date = document.getElementById('date').value;
-            const image = document.getElementById('nasaImage');
-            const errorMessage = document.getElementById('errorMessage');
-            const loadingMessage = document.getElementById('loading');
-
-            if (!selectedLat || !selectedLon)
-            {
-                errorMessage.innerText = 'Please select a point on the map.';
-                return;
-            }
-
-            const url = `https://api.nasa.gov/planetary/earth/imagery?lat=${selectedLat}&lon=${selectedLon}&date=${date}&dim=0.1&api_key=${apiKey}`;
-            image.style.display = 'none'; // Hide image initially
-            errorMessage.innerText = ''; // Clear error message
-            loadingMessage.style.display = 'block'; // Show loading message
-
-            try
-            {
-                const response = await fetch(url);
-                if (!response.ok)
-                {
-                    throw new Error('Image not found or invalid coordinates');
-                }
-
-                // Directly set the image source to the response URL
-                const blob = await response.blob(); // Get the image as a blob
-                const imgUrl = URL.createObjectURL(blob); // Create a local URL for the blob
-                image.src = imgUrl; // Set image source
-                image.style.display = 'block'; // Show image
-                loadingMessage.style.display = 'none'; // Hide loading message
-            } catch (error)
-            {
-                image.style.display = 'none';
-                loadingMessage.style.display = 'none'; // Hide loading message
-                errorMessage.innerText = error.message;
-            }
-        });
-    </script>
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
